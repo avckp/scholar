@@ -1,44 +1,3 @@
-//Checks the version of chrome and appropriate method for msg passing
-if (!chrome.runtime) {
-    // Chrome 20-21
-    chrome.runtime = chrome.extension;
-} else if(!chrome.runtime.onMessage) {
-    // Chrome 22-25
-    chrome.runtime.onMessage = chrome.extension.onMessage;
-    chrome.runtime.sendMessage = chrome.extension.sendMessage;
-    chrome.runtime.onConnect = chrome.extension.onConnect;
-    chrome.runtime.connect = chrome.extension.connect;
-}
-
-//Listener for connections from other tabs
-chrome.runtime.onConnect.addListener(function(port){
-	console.log("chrome.runtime.onConnect.addListener called for background page.\n Attempting to send a message now...");
-  	port.postMessage({greeting:"hello"});
-  	port.onMessage.addListener(
-  		function(message, sender) {
-  			console.log(message);
-  			scholar.indexedDB.addsnippets(message.text,message.URL);
-  		});
-});
-//Message Listener
-chrome.runtime.onMessage.addListener(
-	function(message,sender){
-			console.log("hello ::"+message);
-			scholar.indexedDB.addsnippets(message.text);
-			scholar.indexedDB.getAllsnippets();
-		});
-
-window.onload = function initial () {
-	console.log( "Hi, background has been inited! Let the fun begin");
-	//paste the selected data to console.
-		//copy the selected dat 					window.getSelectedText().toString()
-		//store it to a variable					selected = window.getSelectedText().toString()
-		//pass the reference here					
-	chrome.tabs.create({url:"reviewsnips.html",active:true});
-
-	// console.log( copied);
-}
-
 /*
 	Database Stuff
 	Using IndexedDB for storage!
@@ -86,7 +45,6 @@ window.onload = function initial () {
     		"URL": url,
     		"timeStamp" : new Date().getTime()
   		});
-
   		trans.oncomplete = function(e) {
     		// Re-render all the todo's
     		scholar.indexedDB.getAllsnippets();
@@ -118,11 +76,9 @@ window.onload = function initial () {
     	
     	if(result.value.text!=null && result.value.URL!=null)
     		{
-    			//renderSnip(result.value);
-				console.log( "This is from the database :: " + result.value.text+" and URL " + result.value.URL);
+    			renderSnip(result.value);
+				console.log( "This is from the database :: " + result.value.text);
 			}
-//    	renderSnip(result.value);
-    	// console.log( "This is from the database :: " + result.value.text,result.value.URL);
     	result.continue();
   		};
 
@@ -151,7 +107,65 @@ window.onload = function initial () {
 	}
 
 	window.addEventListener("DOMContentLoaded", init, false);
-/*
-	********************
-*/
 
+
+	function renderSnip(row) {
+	  var container = document.getElementById("big-container");
+	  var divCard = document.createElement("div");
+	  var divClose = document.createElement("div");
+	  var a = document.createElement("a");
+	  var divSnip = document.createElement("div");
+
+	  divSnip.innerHTML = row.text;
+	  a.href=row.URL;
+	  a.appendChild(divSnip);
+	  divCard.appendChild(divClose);
+	  divCard.appendChild(a);
+	  container.appendChild(divCard);
+
+	  divClose.addEventListener("click", function(e){
+	  	divCard.className = "hidden";
+	  });
+
+
+	}	
+/*
+<div class="card">
+		<div class="close-btn">
+		</div>
+		<a class="snip-link" href="">
+			<div class="snip">
+				Main Content
+			</div>
+		</a>
+		<div>
+
+		</div>
+	</div>
+*/
+	function renderSnip(row) {
+	  var container = document.getElementById("big-container");
+	  var divCard = document.createElement("div");
+	  var divClose = document.createElement("span");
+	  var a = document.createElement("a");
+	  var divSnip = document.createElement("div");
+
+	  divSnip.innerHTML = row.text;
+	  divSnip.className="snip";
+
+	  a.href=row.URL;
+	  a.className="snip-link";
+
+	  a.appendChild(divSnip);
+	  divClose.innerHTML="X";
+	  divClose.className="close-btn";
+	  divCard.appendChild(divClose);
+	  divCard.appendChild(a);
+	  divCard.className="card";
+	  
+	  container.appendChild(divCard);
+
+	  divClose.addEventListener("click", function(e){
+	  	divCard.className = "hidden";
+	  });
+	}
