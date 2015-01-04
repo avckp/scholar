@@ -48,43 +48,69 @@ window.onload = function initial () {
 
 	scholar.indexedDB.db = null;
 
-	scholar.indexedDB.open = function() {
-  	
-  		var version = 1;
-  		var request = indexedDB.open("snippets", version);
+	scholar.indexedDB.open = function() {	
+  	var version = 1;
+  		// snippets is the name of database
+    var request = indexedDB.open("snippets", version);
+  
+  	request.onsuccess = function(e) {
+   		scholar.indexedDB.db = e.target.result;
+   		scholar.indexedDB.getAllsnippets();
+  	};
 
-  		request.onsuccess = function(e) {
-    		scholar.indexedDB.db = e.target.result;
-    		scholar.indexedDB.getAllsnippets();
-  		};
-
-  		request.onerror = scholar.indexedDB.onerror;
+  	request.onerror = scholar.indexedDB.onerror;
   		
   		// We can only create Object stores in a versionchange transaction.
-  		request.onupgradeneeded = function(e) {
-    	var db = e.target.result;
+  	request.onupgradeneeded = function(e) {
+   	var db = e.target.result;
     	// A versionchange transaction is started automatically.
-    	e.target.transaction.onerror = scholar.indexedDB.onerror;
+   	e.target.transaction.onerror = scholar.indexedDB.onerror;
 
-    	if(db.objectStoreNames.contains("snippets")) {
-      		db.deleteObjectStore("snippets");
-    	}
+   	if(db.objectStoreNames.contains("snips")) {
+     		db.deleteObjectStore("snips");
+   	}
 
-    	var store = db.createObjectStore("snippets",
+    if(db.objectStoreNames.contains("groups")) {
+         db.deleteObjectStore("groups");
+    }
+
+    if(db.objectStoreNames("books")){
+        db.deleteObjectStore("books");
+    }
+
+   	var snip_store = db.createObjectStore("snips",
       		{keyPath: "timeStamp"});
-  		};
-	};
+  	};
+  
+ //    snip_store.createIndex("by_tags","tags");
+
+ //    var group_store = db.createObjectStore("groups",
+ //         {keyPath: "timeStamp"});
+ //    };
+ //    group_store.createIndex("by_tags","tags");
+
+ //    var book_store = db.createObjectStore("books",
+ //        {keyPath: "timeStamp"});
+ //    };
+ //    book_store.createIndex("by_tags","tags");
+
+	// };
 
 	//Adding objects
 	scholar.indexedDB.addsnippets = function(snip,url) {
   	
   		var db = scholar.indexedDB.db;
   		var trans = db.transaction(["snippets"], "readwrite");
-  		var store = trans.objectStore("snippets");
+  		var store = trans.objectStore("snips");
   		var request = store.put({
     		"text": snip,
     		"URL": url,
-    		"timeStamp" : new Date().getTime()
+    		"timeStamp" : new Date().getTime(),
+        "tags"  : [],
+        "groups": [],
+        "books" : [],
+        "summary":"",
+        "deleted":0
   		});
 
   		trans.oncomplete = function(e) {
@@ -97,6 +123,57 @@ window.onload = function initial () {
   		};
 	};
 
+  scholar.indexedDB.searchByTags = function(objectStoreName, tag){
+    
+    var db = scholar.indexedDB.db;
+    var trans = db.transaction(["snippets"], "readwrite");
+    var store = trans.objectStore(objectStoreName);
+    var index = store.index("by_tags");
+
+    var request = index.openCursor(IDBKeyRange.only(tag));
+    
+    request.onsuccess = function(){
+      var cursor = request.result;
+      if(cursor){
+        console.log(cursor.value.text);
+        cursor.continue();
+      } else{
+        console.log("404::Not Found Any Thing With "+tag);
+      }
+    };
+};
+
+  scholar.indexedDB.updateSnippetsById = function (id, field, newValue, replace) {
+    
+    var db = scholar.indexedDB.db;
+    var trans = db.transaction(["snippets"], "readwrite");
+    var store = trans.objectStore(objectStoreName);
+    
+    var keyRange = IDBKeyRange.only(id);
+    var request = store.openCursor(keyRange);
+    
+    request.onsuccess = function(){
+      var cursor = request.result;
+      if(cursor){
+        console.log(cursor.value.field);
+        if(Object.prototype.toString.call(cursor.value.field) === '[object Array]' && replace)
+        {
+          cursor.value.field = [newValue];
+        }
+        else if(Object.prototype.toString.call(cursor.value.field) === '[object Array]')
+        {
+          cursor.value.field.push(newValue);
+        }
+        else if(Object.prototype.toString.call(cursor.value.field) === '[object String]' )
+        {
+          cursor.value.field = newValue;
+        }
+        cursor.continue();
+      } else{
+        console.log("404::Not Found Any Thing With "+tag);
+      }
+    };
+  }
 	//Retrieving objects
 	scholar.indexedDB.getAllsnippets = function() {
   		
@@ -105,7 +182,7 @@ window.onload = function initial () {
 
   		var db = scholar.indexedDB.db;
   		var trans = db.transaction(["snippets"], "readwrite");
-  		var store = trans.objectStore("snippets");
+  		var store = trans.objectStore("snips");
 
   		// Get everything in the store;
   		var keyRange = IDBKeyRange.lowerBound(0);
@@ -133,7 +210,7 @@ window.onload = function initial () {
 	scholar.indexedDB.deletesnips = function(id) {
   		var db = scholar.indexedDB.db;
   		var trans = db.transaction(["snippets"], "readwrite");
-  		var store = trans.objectStore("snippets");
+  		var store = trans.objectStore("snips");
 
   		var request = store.delete(id);
 
