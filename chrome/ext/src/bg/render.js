@@ -1,33 +1,38 @@
+  
+ 
 /*
-	Database Stuff
-	Using IndexedDB for storage!
+  Database Stuff
+  Using IndexedDB for storage!
 */
-	var scholar = {};
-	scholar.indexedDB = {};
+  var scholar = {};
+  scholar.indexedDB = {};
 
-	scholar.indexedDB.db = null;
+  scholar.indexedDB.db = null;
+  scholar.indexedDB.onerror = function  (e) {
+   // body...
+   console.log("Error::"+e.target.errorCode);}
 
-	scholar.indexedDB.open = function() {	
-  	var version = 4;
-  		// snippets is the name of database
+  scholar.indexedDB.open = function() { 
+    var version = 5;
+      // snippets is the name of database
     var request = indexedDB.open("snippets", version);
   
-  	request.onsuccess = function(e) {
-   		scholar.indexedDB.db = e.target.result;
-   		scholar.indexedDB.getAllsnippets();
-  	};
+    request.onsuccess = function(e) {
+      scholar.indexedDB.db = e.target.result;
+      scholar.indexedDB.getAllsnippets();
+    };
 
-  	request.onerror = scholar.indexedDB.onerror;
-  		
-  		// We can only create Object stores in a versionchange transaction.
-  	request.onupgradeneeded = function(e) {
-   	var db = e.target.result;
-    	// A versionchange transaction is started automatically.
-   	e.target.transaction.onerror = scholar.indexedDB.onerror;
+    request.onerror = scholar.indexedDB.onerror;
+      
+      // We can only create Object stores in a versionchange transaction.
+    request.onupgradeneeded = function(e) {
+    var db = e.target.result;
+      // A versionchange transaction is started automatically.
+    e.target.transaction.onerror = scholar.indexedDB.onerror;
 
-   	if(db.objectStoreNames.contains("snips")) {
-     		db.deleteObjectStore("snips");
-   	}
+    if(db.objectStoreNames.contains("snips")) {
+        db.deleteObjectStore("snips");
+    }
 
     if(db.objectStoreNames.contains("groups")) {
          db.deleteObjectStore("groups");
@@ -36,50 +41,98 @@
     if(db.objectStoreNames.contains("books")){
         db.deleteObjectStore("books");
     }
+    
+    if(db.objectStoreNames.contains("snip_parent")){
+        db.deleteObjectStore("snip_parent");
+    }
 
-   	var snip_store = db.createObjectStore("snips",
-      		{keyPath:"id", autoIncrement: true});
+    var snip_store = db.createObjectStore("snips",
+          {keyPath:"id", autoIncrement: true});
+    snip_store.createIndex("by_parent","parent");
     snip_store.createIndex("by_tags","tags");
 
-    var group_store = db.createObjectStore("groups",
-         {keyPath:"id",autoIncrement: true});
-  
-    group_store.createIndex("by_tags","tags");
 
-    var book_store = db.createObjectStore("books",
-        {keyPath:"id",autoIncrement: true});
-    book_store.createIndex("by_tags","tags");
+    var snip_parent = db.createObjectStore("parent",
+      {keyPath:"id",autoIncrement:true});
+    snip_parent.createIndex("by_id","id");
+    snip_parent.createIndex("by_URL","URL");
+
+
+    // var group_store = db.createObjectStore("groups",
+    //      {keyPath:"id",autoIncrement: true});
+  
+    // group_store.createIndex("by_tags","tags");
+
+    // var book_store = db.createObjectStore("books",
+    //     {keyPath:"id",autoIncrement: true});
+    // book_store.createIndex("by_tags","tags");
     };
   
 
-	 };
+   };
 
-	//Adding objects
-	scholar.indexedDB.addsnippets = function(snip,url) {
-  	
-  		var db = scholar.indexedDB.db;
-  		var trans = db.transaction(["snips"], "readwrite");
-  		var store = trans.objectStore("snips");
-  		var request = store.add({
-    		"text": snip,
-    		"URL": url,
-    		"timeStamp" : new Date().getTime(),
+  //Adding objects
+  scholar.indexedDB.addsnip_parent= function(title,url) {
+    console.log("in addsnip_parent");
+      var db = scholar.indexedDB.db;
+      var trans = db.transaction(["parent"], "readwrite");
+      var store = trans.objectStore("parent");
+      var request = store.add({
+        "title": title,
+        "URL": url,
+        "timeStamp" : new Date().getTime(),
         "tags"  : [],
-        "groups": [],
-        "books" : [],
         "summary":"",
         "deleted":0
-  		});
+      });
 
-  		trans.oncomplete = function(e) {
-    		// Re-render all the todo's
-    		scholar.indexedDB.getAllsnippets();
-  		};
+      // trans.oncomplete = function(e) {
+      //   // Re-render all the todo's
+      //   scholar.indexedDB.getAllsnippets();
+      // };
+       request.onsuccess = function(event) {
+    // event.target.result == customerData[i].ssn;
+        console.log(event.target.result);
+        return event.target.result;
+      };
 
-  		request.onerror = function(e) {
-    		console.log(e.value);
-  		};
-	};
+      request.onerror = function(e) {
+        console.log(e.value);
+      };
+  };
+  scholar.indexedDB.findparent = function (URL) {
+    var db = scholar.indexedDB.db;
+    var trans = db.transaction(["parent"],"readonly");
+    var store= trans.objectStore("parent");
+    var index = store.index("by_URL");
+    index.get(URL).onsuccess = function  (event) {
+      console.log("The parent for "+URL+" is "+event.target.result.parent);
+      return event.target.result.parent;
+    };
+  }
+
+  scholar.indexedDB.addsnippets = function(snip,url,parent) {
+    console.log("in addsnippets");
+      var db = scholar.indexedDB.db;
+      var trans = db.transaction(["snips"], "readwrite");
+      var store = trans.objectStore("snips");
+      var request = store.add({
+        "parent":parent,
+        "text": snip,
+        "URL": url,
+        "timeStamp" : new Date().getTime(),
+        "deleted":0
+      });
+
+      trans.oncomplete = function(e) {
+        // Re-render all the todo's
+        scholar.indexedDB.getAllsnippets();
+      };
+
+      request.onerror = function(e) {
+        console.log(e.value);
+      };
+  };
 
   //Search by Tags 
   //**TODO** 
@@ -144,54 +197,54 @@
     };
   }
 
-	//Retrieving objects
-	scholar.indexedDB.getAllsnippets = function() {
-  		
-  		//var snips = document.getElementById("todoItems");
-  		//todos.innerHTML = "";
+  //Retrieving objects
+  scholar.indexedDB.getAllsnippets = function() {
+      
+      //var snips = document.getElementById("todoItems");
+      //todos.innerHTML = "";
 
-  		var db = scholar.indexedDB.db;
-  		var trans = db.transaction(["snips"], "readwrite");
-  		var store = trans.objectStore("snips");
+      var db = scholar.indexedDB.db;
+      var trans = db.transaction(["snips"], "readwrite");
+      var store = trans.objectStore("snips");
 
-  		// Get everything in the store;
-  		var keyRange = IDBKeyRange.lowerBound(0);
-  		var cursorRequest = store.openCursor(keyRange);
+      // Get everything in the store;
+      var keyRange = IDBKeyRange.lowerBound(0);
+      var cursorRequest = store.openCursor(keyRange);
 
-  		cursorRequest.onsuccess = function(e) {
-    		var result = e.target.result;
-    		if(!!result == false)
-      			return;
-    	
-    	if(result.value.text!=null && result.value.URL!=null)
-    		{
-    			renderSnip(result.value);
-				console.log( "This is from the database :: " + result.value.text+" and URL " + result.value.URL);
-			}
-//    	renderSnip(result.value);
-    	// console.log( "This is from the database :: " + result.value.text,result.value.URL);
-    	result.continue();
-  		};
+      cursorRequest.onsuccess = function(e) {
+        var result = e.target.result;
+        if(!!result == false)
+            return;
+      
+      if(result.value.text!=null && result.value.URL!=null)
+        {
+          //renderSnip(result.value);
+        console.log( "This is from the database :: " + result.value.text+" and URL " + result.value.URL);
+      }
+//      renderSnip(result.value);
+      // console.log( "This is from the database :: " + result.value.text,result.value.URL);
+      result.continue();
+      };
 
-  		cursorRequest.onerror = scholar.indexedDB.onerror;
-	};
+      cursorRequest.onerror = scholar.indexedDB.onerror;
+  };
 
-	//Deleting objects by ID from objectstore
-	scholar.indexedDB.deletesnips = function(objectStoreName, id) {
-  		var db = scholar.indexedDB.db;
-  		var trans = db.transaction([objectStoreName], "readwrite");
-  		var store = trans.objectStore(objectStoreName);
+  //Deleting objects by ID from objectstore
+  scholar.indexedDB.deletesnips = function(objectStoreName, id) {
+      var db = scholar.indexedDB.db;
+      var trans = db.transaction([objectStoreName], "readwrite");
+      var store = trans.objectStore(objectStoreName);
 
-  		var request = store.delete(id);
+      var request = store.delete(id);
 
-  		trans.oncomplete = function(e) {
-    		scholar.indexedDB.getAllsnippets();  // Refresh the screen
-  		};
+      trans.oncomplete = function(e) {
+        scholar.indexedDB.getAllsnippets();  // Refresh the screen
+      };
 
-  		request.onerror = function(e) {
-    	console.log(e);
-  		};
-	};
+      request.onerror = function(e) {
+      console.log(e);
+      };
+  };
  //flushing the stores
 
  scholar.indexedDB.flushStores = function(){
@@ -207,7 +260,7 @@
       store.clear();
  }
 /*
-	********************
+  ********************
 */
 
 	function init() {

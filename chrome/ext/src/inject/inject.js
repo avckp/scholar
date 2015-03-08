@@ -46,11 +46,12 @@ port.onMessage.addListener(function(message,sender){
 
 document.onmousedown = sendSelection;
 URL = document.URL;
+title = document.title;
 function sendSelection () {
 	// body...
 	selected = window.getSelection().toString();
-	if(selected !="")
+	if(selected !="" && selected.length>0)
 	{
-		port.postMessage({text:selected,URL:URL});
+		port.postMessage({text:selected,URL:URL,title:title});
 	}
 }
