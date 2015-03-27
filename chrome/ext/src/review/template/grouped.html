@@ -1,0 +1,65 @@
+<div class="card" ng-repeat="p in datais.data" ng-if="islegit(p.deleted)">
+      <div class="title-row row" >
+        <div class="snip col-md-11" >
+             <a class="snip-link" href={{p.URL}}>
+              {{p.title}}
+             </a>
+        </div>
+        <ul class="col-md-1">
+          <li>
+            <a class="snip-link  fui-trash"  ng-click='trashthis(0,p.id)'></a>
+          </li>
+        </ul>
+      </div>
+      <!-- <div class="row">
+        <hr>
+      </div> -->
+
+      
+      <div class="row">
+        <div class="col-md-1">
+          <span class="bold" ><a class="snip-link  fui-new" href="" data-toggle="collapse" data-target='#{{p.id}}summaryedit'></a></span><br>
+            
+        </div>
+        <div class="snip-summary-container col-md-10" >
+          <div class="snip-summary">
+            <div ng-if="summary">
+              <i>{{summary}}</i>
+            </div>
+            <div ng-if="!summary">
+              <i>Write your notes...</i>
+            </div>
+          </div>
+        </div>
+      </div>
+        
+      <ul class="snip-container row"  ng-repeat="k in dataisdata.realdata|filter:p.URL|filter:searchtext" 
+      ng-mouseenter="show = true" ng-mouseleave="show = false">
+        
+          <li   ng-if="true" class="col-md-10 col-md-offset-1">
+            {{k.text}}
+          </li>
+          <span ng-show="show" class="fui-cross-circle col-md-1 trasher" ng-click="trashthis(1,k.id)"></span>
+      </ul>
+
+      <div class="row init-hidden" id='{{p.id}}summaryedit'>
+          <div class="snip-editor col-md-10">
+            <input type="text" ng-model="summary" ng-init="summary=p.summary" class="form-control" placeholder="Summary" />
+          </div>
+          <ul class="col-md-1" data-toggle="collapse" data-target='#{{p.id}}summaryedit'>
+            <li>
+               <a class="snip-link  fui-cross" href=""></a>
+            </li>
+            <li>
+               <a class="snip-link  fui-check" ng-click="updatesummary(p.id,summary)"></a>
+            </li>
+          </ul>
+      </div>
+      <!-- <div class="row">
+        <div class="snip-tag-container col-md-10">
+          <div class="tagsinput-primary snip-tag">
+            <input placeholder={{placeholderText(p.tags,'Tag')}} ng-model="taggy" name="tagsinput" class="tagsinput" data-role="tagsinput" value={{returnall(p.tags)}}  />
+          </div>
+        </div>
+      </div> -->
+    </div>

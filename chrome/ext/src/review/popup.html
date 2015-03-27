@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="scholarapp" ng-csp>
+  <head>
+    <meta charset="utf-8">
+    <title>Snipp It :: Your Personal Knowledge Library</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Loading Bootstrap -->
+    <link href="dist/css/vendor/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Loading Flat UI -->
+    <link href="dist/css/flat-ui.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="dist/img/dagger.png">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="../../dist/js/vendor/html5shiv.js"></script>
+      <script src="../../dist/js/vendor/respond.min.js"></script>
+    <![endif]-->
+    <link href="../../js/angular/angular-csp.css" rel="stylesheet">
+    <script type="text/javascript" src="../../js/angular/angular.min.js"></script>
+    <script type="text/javascript" src="../../js/angular/angular-route.js"></script>
+
+    <script src="js/ngn.js"></script>
+    <style type="text/css">
+    .popup{
+      width: 400px;
+      }
+      ul li{
+        list-style-type: none;
+      }
+
+        </style>
+  </head>
+  <body ng-controller="AppController">
+    {{getinitialdata()}}
+      <div class="popup" id='{{p.id}}summaryedit'>
+          <div class="snip-editor ">
+            <input type="text" ng-model="summary" ng-init="summary=p.summary" class="form-control" placeholder="Summary" />
+          </div>
+          <ul class="col-md-1" data-toggle="collapse" data-target='#{{p.id}}summaryedit'>
+            <li>
+               <a class="snip-link  fui-cross" href=""></a>
+            </li>
+            <li>
+               <a class="snip-link  fui-check" ng-click="updatesummary(p.id,summary)"></a>
+            </li>
+          </ul>
+      </div>
+</body>
+</html>

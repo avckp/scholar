@@ -14,35 +14,32 @@ if (!chrome.runtime) {
 chrome.runtime.onConnect.addListener(function(port){
   console.log("chrome.runtime.onConnect.addListener called for background page.\n Attempting to send a message now...");
     port.postMessage({greeting:"hello"});
+   
     port.onMessage.addListener(
       function(message, sender) {
-        console.log(message);
+        console.log("Here");
+        console.log(message.text);
         // scholar.indexedDB.addsnippets(message.text,message.URL,message.title);
-              console.log("hello ::"+message);
-      scholar.indexedDB.addsnip_parent(message.title,message.URL);
-      var parent = scholar.indexedDB.findparent(message.URL);
-      scholar.indexedDB.addsnippets(message.text,message.URL,parent);
-      scholar.indexedDB.getAllsnippets();
+        console.log("hello ::"+message);
+        
+        console.log("the msg text NOT init"+message.URL);
+        scholar.indexedDB.addsnippets(message.text,message.URL);
+        scholar.indexedDB.addsnip_parent(message.title,message.URL);
+      // scholar.indexedDB.getAllsnippets();
 
       });
 });
-//Message Listener
-chrome.runtime.onMessage.addListener(
-  function(message,sender){
-      console.log("hello ::"+message);
-      scholar.indexedDB.addsnip_parent(message.title,message.URL);
-      var parent = scholar.indexedDB.findparent(message.URL);
-      scholar.indexedDB.addsnippets(message.text,message.URL,parent);
-      scholar.indexedDB.getAllsnippets();
-    });
 
+chrome.browserAction.onClicked.addListener(function (Tab){
+  chrome.tabs.create({url:"src/review/index.html",active:true});
+});
 window.onload = function initial () {
   console.log( "Hi, background has been inited! Let the fun begin");
   //paste the selected data to console.
     //copy the selected dat           window.getSelectedText().toString()
     //store it to a variable          selected = window.getSelectedText().toString()
     //pass the reference here         
-  chrome.tabs.create({url:"reviewsnips.html",active:true});
+  // chrome.tabs.create({url:"src/review/index.html",active:true});
 
   // console.log( copied);
 }
@@ -69,7 +66,7 @@ function init() {
    console.log("Error::"+e.target.errorCode);}
 
 	scholar.indexedDB.open = function() {	
-  	var version = 5;
+  	var version = 7;
   		// snippets is the name of database
     var request = indexedDB.open("snippets", version);
   
@@ -94,9 +91,9 @@ function init() {
          db.deleteObjectStore("groups");
     }
 
-    if(db.objectStoreNames.contains("books")){
-        db.deleteObjectStore("books");
-    }
+        if(db.objectStoreNames.contains("parent")){
+         db.deleteObjectStore("parent");
+        }
     
     if(db.objectStoreNames.contains("snip_parent")){
         db.deleteObjectStore("snip_parent");
@@ -104,14 +101,15 @@ function init() {
 
    	var snip_store = db.createObjectStore("snips",
       		{keyPath:"id", autoIncrement: true});
-    snip_store.createIndex("by_parent","parent");
-    snip_store.createIndex("by_tags","tags");
+    // snip_store.createIndex("by_parent","parent");
+    // snip_store.createIndex("by_tags","tags");
+    snip_store.createIndex("by_URL","URL");
 
 
     var snip_parent = db.createObjectStore("parent",
       {keyPath:"id",autoIncrement:true});
     snip_parent.createIndex("by_id","id");
-    snip_parent.createIndex("by_URL","URL");
+    snip_parent.createIndex("by_URL","URL",{unique: true});
 
 
     // var group_store = db.createObjectStore("groups",
@@ -134,6 +132,7 @@ function init() {
       var trans = db.transaction(["parent"], "readwrite");
       var store = trans.objectStore("parent");
       var request = store.add({
+        
         "title": title,
         "URL": url,
         "timeStamp" : new Date().getTime(),
@@ -153,7 +152,7 @@ function init() {
       };
 
       request.onerror = function(e) {
-        console.log(e.value);
+        console.log(e.target.errorCode);
       };
   };
   scholar.indexedDB.findparent = function (URL) {
@@ -167,13 +166,13 @@ function init() {
     };
   }
 
-  scholar.indexedDB.addsnippets = function(snip,url,parent) {
+  scholar.indexedDB.addsnippets = function(snip,url) {
   	console.log("in addsnippets");
   		var db = scholar.indexedDB.db;
   		var trans = db.transaction(["snips"], "readwrite");
   		var store = trans.objectStore("snips");
   		var request = store.add({
-        "parent":parent,
+        
     		"text": snip,
     		"URL": url,
     		"timeStamp" : new Date().getTime(),
@@ -182,11 +181,12 @@ function init() {
 
   		trans.oncomplete = function(e) {
     		// Re-render all the todo's
-    		scholar.indexedDB.getAllsnippets();
+    		// scholar.indexedDB.getAllsnippets();
+        console.log("trans completed");
   		};
 
   		request.onerror = function(e) {
-    		console.log(e.value);
+    		console.log(e.target.errorCode);
   		};
 	};
 

@@ -1,0 +1,40 @@
+    <h8>Snips</h8>
+     
+      <ul class="snip-container row"  ng-repeat="k in dataisdata.realdata|filter:searchtext" 
+      ng-mouseenter="show = true" ng-mouseleave="show = false">
+        
+          <li   ng-if="true" class="col-md-10 col-md-offset-1">
+            {{k.text}}
+          </li>
+          <span ng-show="show" class="fui-cross-circle col-md-1 trasher" ng-click="trashthis(1,k.id)"></span>
+      </ul>
+
+    <h8>Sites</h8>
+      <ul class="snip-container row"  ng-repeat="p in datais.data|filter:searchtext" 
+      ng-mouseenter="show = true" ng-mouseleave="show = false">
+        
+          <li   ng-if="true" class="col-md-10 col-md-offset-1">
+            {{p.title}}
+            <br>
+            <a class="snip-link" href={{p.URL}}>
+              {{p.URL}}
+             </a>
+          </li>
+          <span ng-show="show" class="fui-cross-circle col-md-1 trasher" ng-click="trashthis(0,p.id)"></span>
+      </ul>
+    <h8>Summaries</h8>
+      <ul class="snip-container row"  ng-repeat="p in datais.data|filter:searchtext" 
+      ng-if="p.summary">
+        
+          <li  class="col-md-10 col-md-offset-1">
+            {{p.summary}}
+            <br>
+            <a class="snip-link" href={{p.URL}}>
+              {{p.title}}
+             </a>
+          </li>
+          
+      </ul>
+           
+      
+      
