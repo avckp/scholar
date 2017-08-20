@@ -1,6 +1,33 @@
+
+    <!-- Static navbar -->
+    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+          </button>
+          <a class="navbar-brand" href="#grouped">SnippIt</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-centre">
+            <li class="active">
+            <input  ng-model="searchtext" type="text" placeholder="Search" class="form-control search ">
+          </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+          <li ><a href="#all">All</a></li>
+          <li ><a href="#grouped">Grouped</a></li>
+          <li><a href="#about">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <span>{{dataisdata}}</span>
+    <span>{{datais}}</span>
+
     <h8>Snips</h8>
      
-      <ul class="snip-container row"  ng-repeat="k in dataisdata.realdata|filter:searchtext" 
+      <ul class="snip-container row"  ng-repeat="k in dataisdata.array[0]|filter:searchtext" 
       ng-mouseenter="show = true" ng-mouseleave="show = false">
         
           <li   ng-if="true" class="col-md-10 col-md-offset-1">
@@ -10,7 +37,7 @@
       </ul>
 
     <h8>Sites</h8>
-      <ul class="snip-container row"  ng-repeat="p in datais.data|filter:searchtext" 
+      <ul class="snip-container row"  ng-repeat="p in datais.array[0]|filter:searchtext" 
       ng-mouseenter="show = true" ng-mouseleave="show = false">
         
           <li   ng-if="true" class="col-md-10 col-md-offset-1">
@@ -23,7 +50,7 @@
           <span ng-show="show" class="fui-cross-circle col-md-1 trasher" ng-click="trashthis(0,p.id)"></span>
       </ul>
     <h8>Summaries</h8>
-      <ul class="snip-container row"  ng-repeat="p in datais.data|filter:searchtext" 
+      <ul class="snip-container row"  ng-repeat="p in datais.array[0]|filter:searchtext" 
       ng-if="p.summary">
         
           <li  class="col-md-10 col-md-offset-1">

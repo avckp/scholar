@@ -19,9 +19,9 @@
       <script src="../../dist/js/vendor/respond.min.js"></script>
     <![endif]-->
     <link href="../../js/angular/angular-csp.css" rel="stylesheet">
-    <script type="text/javascript" src="../../js/angular/angular.min.js"></script>
+    <script type="text/javascript" src="../../js/angular/angular.js"></script>
     <script type="text/javascript" src="../../js/angular/angular-route.js"></script>
-
+    <script src="../../js/dexie.js"></script>
     <script src="js/ngn.js"></script>
     <style>
       body {
@@ -68,8 +68,8 @@
     </style>
 
   </head>
-  <body ng-controller="AppController" >
-    
+  <body >
+      <div class="container " ng-controller="AppController" ng-view="" id="big-containers">    
     <!-- Static navbar -->
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="container">
@@ -94,7 +94,7 @@
       </div>
     </div>
 
-    <div class="container " ng-view="" id="big-containers">
+
   
     </div> <!-- /container -->
 
